@@ -1,0 +1,5 @@
+ - Upload Foto
+ - Jika Ekpedisi ditemukan, input di ekspedisi dan tparkir -> plat nomor, tanggal, jam masuk/keluar
+    Tampilkan data kendaraan
+ - Jika GA ditemukan, input di GA -> Plat nomor, tanggal, jam masuk/keluar, km masuk/keluar
+ - 

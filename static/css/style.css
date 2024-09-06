@@ -1,0 +1,20 @@
+.center_all {
+    text-align: center;
+}
+
+.box_padding {
+    padding-top: 10px;
+    padding-right: 40px;
+    padding-bottom: 10px;
+    padding-left: 40px;
+}
+
+.button_width {
+    width: 100%;
+    /* height: 110%; */
+    margin-top: 10px;
+}
+
+.video_stream {
+    width: 85%;
+}
