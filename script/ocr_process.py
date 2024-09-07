@@ -5,6 +5,8 @@ from paddleocr import PaddleOCR
 import numpy as np
 from .csv_process import data_photo_uploaded
 from .char_prosess import character_cleaning, character_join
+import base64
+from io import BytesIO
 
 ocr = PaddleOCR(enable_mkldnn=False, use_tensorrt=False, use_angle_cls=False, use_gpu=False, lang="en", use_direction_classify=True)
 folder_upload = 'img_ocr/upload/'
@@ -157,3 +159,16 @@ def show_labels(frame, predictions):
     opencvimage = np.array(frame)
     # global plat
     return opencvimage, plat
+
+def numpy_to_base64(image_np):
+    # Convert NumPy array to PIL Image
+    pil_image = Image.fromarray(cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB))
+    
+    # Save the PIL image to a BytesIO buffer
+    buffer = BytesIO()
+    pil_image.save(buffer, format="JPEG")
+    
+    # Encode the image to base64
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+    
+    return f"data:image/jpeg;base64,{img_str}"
