@@ -48,7 +48,7 @@ def detect_license_plate(image_np, model_name="google/owlvit-base-patch32", text
 
     # Crop the image based on the adjusted bounding box
     cropped_image_np = image_np[ymin:ymax, xmin:xmax]
-    cv2.imwrite("./pic/temp/cropped_image.png", cropped_image_np)
+    cv2.imwrite("img_ocr/temp/licence_plate.png", cropped_image_np)
 
     # Return the cropped image as a NumPy array
     return cropped_image_np

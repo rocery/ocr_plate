@@ -1,34 +1,63 @@
 import os
-from PIL import Image, ImageDraw, ExifTags
+from PIL import Image, ImageDraw, ExifTags, UnidentifiedImageError
 import cv2
-from csv_process import data_photo_uploaded
 from paddleocr import PaddleOCR
+import numpy as np
+from .csv_process import data_photo_uploaded
+from .char_prosess import character_cleaning, character_join
 
 ocr = PaddleOCR(enable_mkldnn=False, use_tensorrt=False, use_angle_cls=False, use_gpu=False, lang="en", use_direction_classify=True)
 folder_upload = 'img_ocr/upload/'
 csv_data_photo_uploaded = 'img_ocr/upload.csv'
 
 def img_preprocess(image, action, time_str):
-    
+    """
+    Preprocess an image and save it to a directory with the given action and time string.
+    :param image: PIL image object or file-like object
+    :param action: string, either 'masuk' or 'keluar'
+    :param time_str: string, format 'YYYY-MM-DD HH:MM:SS'
+    :return: numpy array of the image
+    """
+    if image is None:
+        return False
+
+    try:
+        # Open image if it's a file-like object, or verify it's already an Image
+        if isinstance(image, Image.Image):
+            pil_image = image
+        else:
+            pil_image = Image.open(image)
+        
+        # Force loading to detect any issues
+        pil_image.load()
+        
+        img_ex = pil_image.format.lower()
+        print(img_ex)
+        
+    except UnidentifiedImageError:
+        print("UnidentifiedImageError: The file is not a valid image.")
+        return False
+    except AttributeError as e:
+        print(f"AttributeError: {e}")
+        return False
+
     # Split the date and time
     date_part, time_part = time_str.split(' ')
     # Remove the colons from the time part
     time_part = time_part.replace(':', '')
     
-    folder_upload = folder_upload + date_part + ' ' + time_part + '/'
+    # Save image in "folder_upload/date/
+    folder_uploaded = folder_upload + date_part + '/'
     
     # Check folder_upload
-    if not os.path.exists(folder_upload):
-        os.makedirs(folder_upload)
+    if not os.path.exists(folder_uploaded):
+        os.makedirs(folder_uploaded)
     
     # Extract the file extension
     file_extension = os.path.splitext(image.filename)[1]
     
     # Construct the new filename with time_str
-    filename = f"{os.path.splitext(image.filename)[0]}-{time_str}{file_extension}"
-    
-    # Open the image with PIL to handle EXIF data and save later
-    pil_image = Image.open(image.stream)
+    filename = f"{os.path.splitext(image.filename)[0]}-{date_part} {time_part}{file_extension}"
     
     # Rotate image if needed based on EXIF orientation
     try:
@@ -48,11 +77,16 @@ def img_preprocess(image, action, time_str):
         # Handle cases where the image doesn't have EXIF data
         pass
     
-    original_path = os.path.join(folder_upload, filename)
+    # Save the image
+    original_path = os.path.join(folder_uploaded, filename)
     pil_image.save(original_path)
     
+    # Read the image
     image = cv2.imread(original_path)
+    
+    # Update the CSV
     data_photo_uploaded(csv_data_photo_uploaded, original_path, time_str, action)
+    
     return image
 
 def ocr_predict(frame):
@@ -76,26 +110,16 @@ def ocr_predict(frame):
         txts = [line[1][0] for line in sorted_result]
         scores = [line[1][1] for line in sorted_result]
         
-        # boxes_result = [line[0] for line in result]
-        
-        # print("BR: {}".format(boxes_result))
-        # print("B : {}".format(boxes))
-
-        reject = []
         global plat
         plat = []
+
         for data in txts:
-            if any(char in data for char in reject) or data[0] == '0':
-                continue
-            else:
-                cleaned_string = character_cleaning(data)
-                plat.append(cleaned_string)
-            print(f"Data: {data}, cleaned string: {cleaned_string}")
-
-        print(f"Plat: {plat}")
-        plat = character_process(plat)
-        print(f"OCR: {plat}")
-
+            cleaned_string = character_cleaning(data)
+            plat.append(cleaned_string)
+        
+        plat = character_join(plat)
+        print(plat)
+        
         # Convert boxes to the required format
         boxes = [np.array(box, dtype=np.int32).reshape((-1, 1, 2)) for box in boxes]
 

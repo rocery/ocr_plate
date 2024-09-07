@@ -36,13 +36,9 @@ def ocr():
         
         if image:
             try:
-                img = Image.open(image.stream)
-                img.verify()
-                img.seek(0)
-                img_extension = img.format.lower()
                 time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 
-                image = img_preprocess(img, action, time_str)
+                image = img_preprocess(image, action, time_str)
                 
                 # Detect licence plate
                 try:
@@ -60,8 +56,6 @@ def ocr():
                     message_type = 'danger'
                     render_template('ocr.html', message=message, message_type=message_type)
             
-            
-            
             except (IOError, SyntaxError):
                 message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
                 message_type = 'danger'
@@ -71,6 +65,6 @@ def ocr():
 
 if __name__ == '__main__':
     app.run(
-        # host='0.0.0.0',
+        host='0.0.0.0',
         port=5000,
     )
