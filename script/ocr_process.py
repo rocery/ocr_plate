@@ -33,9 +33,6 @@ def img_preprocess(image, action, time_str):
         # Force loading to detect any issues
         pil_image.load()
         
-        img_ex = pil_image.format.lower()
-        print(img_ex)
-        
     except UnidentifiedImageError:
         print("UnidentifiedImageError: The file is not a valid image.")
         return False
@@ -120,7 +117,6 @@ def ocr_predict(frame):
             plat.append(cleaned_string)
         
         plat = character_join(plat)
-        print(plat)
         
         # Convert boxes to the required format
         boxes = [np.array(box, dtype=np.int32).reshape((-1, 1, 2)) for box in boxes]

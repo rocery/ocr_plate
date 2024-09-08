@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for, ses
 import time
 from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64
 from script.licence_plate_detector import detect_license_plate
+from script.char_prosess import character_check
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -22,7 +23,8 @@ def login_ocr():
 message = None
 message_type = None
 time_str = None
-img_extension = None
+label = None
+data = None
 
 @app.route('/ocr', methods=['GET', 'POST'])
 def ocr():
@@ -59,10 +61,31 @@ def ocr():
                 label = show_label[1]
                 data = numpy_to_base64(show_label[0])
                 
+                if character_check(label) == False:
+                    message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
+                    message_type = 'danger'
+                    render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                
+                
+                # Test
+                message = 'Plat Nomor: {}.'.format(label)
+                message_type = 'success'
+                render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                
             except (IOError, SyntaxError):
                 message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
                 message_type = 'danger'
                 return render_template('ocr.html', message=message, message_type=message_type)
+        else:
+            message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
+            message_type = 'danger'
+            return render_template('ocr.html', message=message, message_type=message_type)
+        
+        if action == 'Masuk':
+            print("Plat Nomor : {}".format(label))
+            print("Data Gambar: {}".format(type(data)))
+            
             
     return render_template('ocr.html')
 
