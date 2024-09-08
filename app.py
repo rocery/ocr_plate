@@ -65,22 +65,17 @@ def ocr():
                     message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
                     message_type = 'danger'
                     render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                
-                
-                # Test
-                message = 'Plat Nomor: {}.'.format(label)
-                message_type = 'success'
-                render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                    
+                # # Test
+                # message = 'Plat Nomor: {}.'.format(label)
+                # message_type = 'success'
+                # render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
                 
             except (IOError, SyntaxError):
                 message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
                 message_type = 'danger'
                 return render_template('ocr.html', message=message, message_type=message_type)
-        else:
-            message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
-            message_type = 'danger'
-            return render_template('ocr.html', message=message, message_type=message_type)
         
         if action == 'Masuk':
             print("Plat Nomor : {}".format(label))
