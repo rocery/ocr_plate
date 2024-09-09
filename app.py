@@ -30,6 +30,7 @@ status_kendaraan_ga = None
 ekspedisi = None
 time_ = None
 date_ = None
+csv_data = None
 
 @app.route('/ocr', methods=['GET', 'POST'])
 def ocr():
@@ -37,6 +38,7 @@ def ocr():
         return redirect(url_for('login_ocr'))
 
     if request.method == 'POST':
+        # csv_data = read_data_csv()
         action = request.form['action']
         image = request.files['image']
         
@@ -102,7 +104,13 @@ def ocr():
                 else:
                     message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
                     message_type = 'success'
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type='GA')
+                    return render_template('ocr.html',
+                                           message=message,
+                                           message_type=message_type,
+                                           data=data,
+                                           label=label,
+                                           type='GA',
+                                           action=action)
             
             elif ekspedisi:
                 last_loc = masuk_223(date_, label, time_, 'security', ekspedisi[0])
@@ -142,6 +150,17 @@ def unknown():
         pass
     
     return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+
+@app.route('/ocr/ga/input_km', methods=['GET', 'POST'])
+def input_km():
+    if request.method == 'POST':
+        km = request.form.get('km')
+        action = request.form.get('action')
+        no_mobil = request.form.get('no_mobil')
+        print(km)
+        print(action)
+        print(no_mobil)
+        return redirect(url_for('ocr'))
     
 if __name__ == '__main__':
     app.run(

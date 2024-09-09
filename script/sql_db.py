@@ -74,7 +74,7 @@ def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
     """, (no_mobil,))
     check_last_status = cursor_masuk_223.fetchone()
     if check_last_status:
-        return 'masuk'
+        return 'masul'
     
     cursor_masuk_223.execute("""
         INSERT INTO ocr (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi)

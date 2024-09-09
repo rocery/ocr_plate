@@ -59,12 +59,22 @@
         </div>
     {% endif %}
 
-    {% if type %}
+    <!-- {% if type and type|length > 2 %}
     <div class="text-center">
-        {% for data in type %}
-        <p>{{ data }}</p>
+        {% for info in type %}
+        <p id="data">{{ info }}</p>
         {% endfor %}
     </div>
+    {% elif type and tyoe|length <= 2 %}
+    <div class="text-center"></div>
+        <p id="data">{{ type }}</p>
+    </div>
+    {% endif %} -->
+
+    {% if type %}
+        <div class="text-center">
+            <p id="data">{{ type }}</p>
+        </div>
     {% endif %}
 
     {% if data %}
@@ -98,21 +108,60 @@
     </table>
 </div>
 
+<!-- Modal For Input KM -->
+<div class="modal fade" id="kmModal" tabindex="-1" aria-labelledby="kmModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="kmModalLabel">Input KM</h5>
+            </div>
+            <div class="modal-body">
+                <form id="kmForm" method="POST" action="ocr/ga/input_km">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="no_mobil" name="no_mobil" {% if label %} value="{{ label }}" {% endif %} readonly>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="action" name="action" {% if action %} value="{{ action }}" {% endif %} readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="kmInput" class="form-label">KM:</label>
+                        <input type="number" class="form-control" id="kmInput" name="km" required>
+                    </div>
+                    <!-- <div class="mb-3">
+                        <p>Pastikan KM yang dimasukkan sudah benar sebelum submit.</p>
+                    </div> -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="submitForm2()">Input KM</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    $(document).ready(function() {
-        $('#foldersTable').DataTable({
-            ordering: false, // Disable sorting
-            paging: true,
-            pageLength: 10,
-            lengthMenu: [ 10, 50, 100 ],
-            language: {
-                search: 'Cari Data',
-                lengthMenu: '_MENU_  Data Per Halaman',
-                info: 'Menampilkan _START_ hingga _END_ dari total _TOTAL_ data',
-                infoEmpty: 'Menampilkan 0 hingga 0 dari 0 data',
-            }
-        });
-    });
+    window.onload = function() {
+        checkType();  // Call checkType when the page loads
+    };
+
+    var types = document.getElementById('data');
+    console.log(types)
+
+    function checkType() {
+        // Get the inner text from the element with id 'data'
+        var type = document.getElementById('data').innerText.trim(); // Use innerText instead of getAttribute
+        console.log(type);
+
+        // Check if the type is 'GA'
+        if (type === 'GA') {
+            var modal = new bootstrap.Modal(document.getElementById('kmModal'));
+            modal.show();
+        }
+    }
+
+    function submitForm2() {
+        document.getElementById('kmForm').submit();
+    }
 
     function previewImage(event) {
         const input = event.target;
@@ -212,18 +261,22 @@
         }
     });
 
-    function showPopup() {
-        var popup = new bootstrap.Modal(document.getElementById('keperluanModal'));
-        popup.show();
-    }
-
-    
+    var types = document.getElementById('data');
+    console.log(types)
+    $(document).ready(function() {
+        $('#foldersTable').DataTable({
+            ordering: false, // Disable sorting
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [ 10, 50, 100 ],
+            language: {
+                search: 'Cari Data',
+                lengthMenu: '_MENU_  Data Per Halaman',
+                info: 'Menampilkan _START_ hingga _END_ dari total _TOTAL_ data',
+                infoEmpty: 'Menampilkan 0 hingga 0 dari 0 data',
+            }
+        });
+    });
 </script>
-
-{% if show_popup_keperluan %}
-    <script>    
-        showPopup();
-    </script>
-{% endif %}
 
 {% endblock %}
