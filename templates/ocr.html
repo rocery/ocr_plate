@@ -59,22 +59,36 @@
         </div>
     {% endif %}
 
-    <!-- {% if type and type|length > 2 %}
+    {% if type and type|length > 2 %}
     <div class="text-center">
-        {% for info in type %}
-        <p id="data">{{ info }}</p>
-        {% endfor %}
+        <table id="foldersTable" class="table table-borderless table-responsive-sm">
+            <thead>
+                <tr>
+                    <th>Ekspedisi</th>
+                    <th>Panjang</th>
+                    <th>Lebar</th>
+                    <th>Tinggi</th>
+                    <th>CBM</th>
+                    <th>Jenis</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ type[0] }}</td>
+                    <td>{{ type[1] }}</td>
+                    <td>{{ type[2] }}</td>
+                    <td>{{ type[3] }}</td>
+                    <td>{{ type[4] }}</td>
+                    <td>{{ type[5] }}</td>
+                </tr>
+            </tbody>
+            
+        </table>
     </div>
     {% elif type and tyoe|length <= 2 %}
     <div class="text-center"></div>
-        <p id="data">{{ type }}</p>
+        <p id="data" class="d-none">{{ type }}</p>
     </div>
-    {% endif %} -->
-
-    {% if type %}
-        <div class="text-center">
-            <p id="data">{{ type }}</p>
-        </div>
     {% endif %}
 
     {% if data %}
