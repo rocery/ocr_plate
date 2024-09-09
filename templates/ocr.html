@@ -217,9 +217,13 @@
         popup.show();
     }
 
-    {% if show_popup_keperluan %}
-        showPopup();
-    {% endif %}
+    
 </script>
+
+{% if show_popup_keperluan %}
+    <script>    
+        showPopup();
+    </script>
+{% endif %}
 
 {% endblock %}
