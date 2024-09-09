@@ -1,4 +1,5 @@
 import mysql.connector
+import re
 
 def db_connection(host, user, password, database):
     """Connect to MySQL database.
@@ -16,14 +17,74 @@ def db_connection(host, user, password, database):
         database=database
     )
 
-
 def iot_223():
     return db_connection('192.168.15.223', 'admin', 'itbekasioke', 'iot')
-
 
 def parkir_220():
     return db_connection('192.168.15.220', 'user_external_220', 'Sttbekasioke123!', 'parkir')
 
-
 def db_pegawai_220():
     return db_connection('192.168.15.220', 'user_external_220', 'Sttbekasioke123!', 'db_pegawai')
+
+def normalize_no_mobil(no_mobil):
+    return re.sub(r'\s+', '', no_mobil).upper()
+
+def get_ekspedisi(no_mobil):
+    no_mobil_normalized = normalize_no_mobil(no_mobil)
+    
+    conn_parkir = parkir_220()
+    cursor_parkir = conn_parkir.cursor()
+    
+    cursor_parkir.execute("""
+        SELECT nama_ekspedisi, panjang, lebar, tinggi, cbm, jn_kendaraan FROM pengukuran
+        WHERE REPLACE(REPLACE(nomor_polisi, ' ', ''), '-', '') = %s
+    """, (no_mobil_normalized,))
+    result = cursor_parkir.fetchone()
+    
+    cursor_parkir.close()
+    conn_parkir.close()
+    
+    return result if result else None
+
+def get_kendaraan_ga(no_mobil):
+    no_mobil_normalized = normalize_no_mobil(no_mobil)
+    
+    conn_db_pegawai = db_pegawai_220()
+    cursor_db_pegawai = conn_db_pegawai.cursor()
+    
+    cursor_db_pegawai.execute("""
+        SELECT jenis_kendaraan FROM kendaraan
+        WHERE REPLACE(REPLACE(nopol, ' ', ''), '-', '') = %s
+    """, (no_mobil_normalized,))
+    result = cursor_db_pegawai.fetchone()
+    
+    cursor_db_pegawai.close()
+    conn_db_pegawai.close()
+    
+    return True if result else False
+
+def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
+    conn_masuk_223 = iot_223()
+    cursor_masuk_223 = conn_masuk_223.cursor()
+    
+    # Cek Status Terakhir
+    cursor_masuk_223.execute("""
+        SELECT * FROM ocr
+        WHERE no_mobil = %s AND (tanggal_keluar IS NULL OR jam_keluar IS NULL)
+    """, (no_mobil,))
+    check_last_status = cursor_masuk_223.fetchone()
+    if check_last_status:
+        return 'masuk'
+    
+    cursor_masuk_223.execute("""
+        INSERT INTO ocr (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi))
+    conn_masuk_223.commit()
+    
+    cursor_masuk_223.close()
+    conn_masuk_223.close()
+    
+def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out):
+    conn_keluar_223 = iot_223()
+    cursor_keluar_223 = conn_keluar_223.cursor()

@@ -55,8 +55,16 @@
 
     {% if label %}
         <div class="text-center">
-            <h6>Label: {{ label }}</h6>
+            <h6>Plat Nomor: {{ label }}</h6>
         </div>
+    {% endif %}
+
+    {% if type %}
+    <div class="text-center">
+        {% for data in type %}
+        <p>{{ data }}</p>
+        {% endfor %}
+    </div>
     {% endif %}
 
     {% if data %}

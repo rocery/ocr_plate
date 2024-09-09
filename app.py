@@ -3,6 +3,7 @@ import time
 from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64
 from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
+from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -25,6 +26,10 @@ message_type = None
 time_str = None
 label = None
 data = None
+status_kendaraan_ga = None
+ekspedisi = None
+time_ = None
+date_ = None
 
 @app.route('/ocr', methods=['GET', 'POST'])
 def ocr():
@@ -38,6 +43,8 @@ def ocr():
         if image:
             try:
                 time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                time_ = time.strftime("%H:%M:%S", time.localtime())
+                date_ = time.strftime("%Y-%m-%d", time.localtime())
                 
                 image = img_preprocess(image, action, time_str)
                 
@@ -47,7 +54,6 @@ def ocr():
                 except:
                     message = 'Tidak Terdeteksi Plat Nomor Pada Gambar. Silahkan Ulangi Proses Upload. Error Code: 0x1'
                     message_type = 'danger'
-                    flash(message, message_type)
                     return render_template('ocr.html', message=message, message_type=message_type)
                 
                 ocr_result = ocr_predict(image)
@@ -65,7 +71,10 @@ def ocr():
                     message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
                     message_type = 'danger'
                     render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                    
+                
+                status_kendaraan_ga = get_kendaraan_ga(label)
+                ekspedisi = get_ekspedisi(label)
+
                 # # Test
                 # message = 'Plat Nomor: {}.'.format(label)
                 # message_type = 'success'
@@ -80,10 +89,60 @@ def ocr():
         if action == 'Masuk':
             print("Plat Nomor : {}".format(label))
             print("Data Gambar: {}".format(type(data)))
+            last_loc = None
             
+            if status_kendaraan_ga == True:
+                last_loc = masuk_223(date_, label, time_, 'security', 'GA')
+                print(last_loc)
+                print(status_kendaraan_ga)
+                if last_loc == 'masuk':
+                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                    message_type = 'danger'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                else:
+                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
+                    message_type = 'success'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type='GA')
+            
+            elif ekspedisi:
+                last_loc = masuk_223(date_, label, time_, 'security', ekspedisi[0])
+                print(last_loc)
+                print(ekspedisi)
+                if last_loc == 'masuk':
+                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                    message_type = 'danger'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                else:
+                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
+                    message_type = 'success'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type=ekspedisi)
+            
+            else:
+                last_loc = masuk_223(date_, label, time_, 'security', '-')
+                if last_loc == 'masuk':
+                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                    message_type = 'danger'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                else:
+                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
+                    message_type = 'success'
+                    return redirect(url_for('unknown', message=message, message_type=message_type, data=data, label=label))
+            
+            # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
             
     return render_template('ocr.html')
 
+@app.route('/ocr/unknown', methods=['GET', 'POST'])
+def unknown():
+    message = request.args.get('message')
+    message_type = request.args.get('message_type')
+    data = request.args.get('data')
+    label = request.args.get('label')
+    if request.method == 'POST':
+        pass
+    
+    return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+    
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',

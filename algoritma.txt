@@ -2,4 +2,6 @@
  - Jika Ekpedisi ditemukan, input di ekspedisi dan tparkir -> plat nomor, tanggal, jam masuk/keluar
     Tampilkan data kendaraan
  - Jika GA ditemukan, input di GA -> Plat nomor, tanggal, jam masuk/keluar, km masuk/keluar
- - https://github.com/img88/ALPR_IndonesiaPlateNumber_ComputerVision
+ - Jika tidak keduanya simpan plat no, tanggal, jam masuk/keluar, (security update keperluan/pic stt)
+ 
+ https://github.com/img88/ALPR_IndonesiaPlateNumber_ComputerVision
