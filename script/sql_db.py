@@ -73,8 +73,9 @@ def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
         WHERE no_mobil = %s AND (tanggal_keluar IS NULL OR jam_keluar IS NULL)
     """, (no_mobil,))
     check_last_status = cursor_masuk_223.fetchone()
+    
     if check_last_status:
-        return 'masul'
+        return 'masukr'
     
     cursor_masuk_223.execute("""
         INSERT INTO ocr (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi)
@@ -88,3 +89,48 @@ def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
 def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out):
     conn_keluar_223 = iot_223()
     cursor_keluar_223 = conn_keluar_223.cursor()
+    no_mobil_normalized = normalize_no_mobil(no_mobil)
+    
+    # Cek Status Terakhir
+    cursor_keluar_223.execute("""
+        SELECT * FROM ocr
+        WHERE no_mobil = %s AND tanggal_keluar IS NULL AND jam_masuk_pabrik IS NOT NULL
+    """, (no_mobil_normalized,))
+    result = cursor_keluar_223.fetchone()
+    
+    if not result:
+        return 'keluarr'
+    
+    cursor_keluar_223.execute("""
+        UPDATE ocr
+        SET tanggal_keluar = %s, jam_keluar = %s, user_out = %s
+        WHERE no_mobil = %s AND tanggal_keluar IS NULL
+    """, (tanggal, jam_keluar_pabrik, user_out, no_mobil_normalized))
+    conn_keluar_223.commit()
+    
+    cursor_keluar_223.close()
+    conn_keluar_223.close()
+    
+def ga_km_process(no_mobil, km, action):
+    conn_ga_km_process = iot_223()
+    cursor_ga_km_process = conn_ga_km_process.cursor()
+    no_mobil_normalized = normalize_no_mobil(no_mobil)
+    
+    if action == 'Masuk':
+        cursor_ga_km_process.execute("""
+            UPDATE ocr
+            SET km_in = %s
+            WHERE no_mobil = %s AND ekspedisi = 'GA'
+        """, (km, no_mobil_normalized))
+        conn_ga_km_process.commit()
+
+    elif action == 'Keluar':
+        cursor_ga_km_process.execute("""
+            UPDATE ocr
+            SET km_out = %s
+            WHERE no_mobil = %s AND ekspedisi = 'GA'
+        """, (km, no_mobil_normalized))
+        conn_ga_km_process.commit()
+    
+    cursor_ga_km_process.close()
+    conn_ga_km_process.close()

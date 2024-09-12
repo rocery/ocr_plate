@@ -3,7 +3,7 @@ import time
 from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64
 from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
-from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223
+from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -89,8 +89,8 @@ def ocr():
                 return render_template('ocr.html', message=message, message_type=message_type)
         
         if action == 'Masuk':
-            print("Plat Nomor : {}".format(label))
-            print("Data Gambar: {}".format(type(data)))
+            # print("Plat Nomor : {}".format(label))
+            # print("Data Gambar: {}".format(type(data)))
             last_loc = None
             
             if status_kendaraan_ga == True:
@@ -137,7 +137,32 @@ def ocr():
                     return redirect(url_for('unknown', message=message, message_type=message_type, data=data, label=label))
             
             # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        
+        elif action == 'Keluar':
+            last_loc = None
             
+            last_loc = keluar_223(date_, label, time_, 'security')
+            
+            if last_loc == 'keluar':
+                message = 'Kendaraan: {} Sudah Di Keluar. Tidak Bisa Diproses Keluar 2x.'.format(label)
+                message_type = 'danger'
+                return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+            
+            else:
+                message = 'Kendaraan: {} Berhasil Keluar.'.format(label)
+                message_type = 'success'
+                if status_kendaraan_ga == True:
+                    return render_template('ocr.html',
+                                        message=message,
+                                        message_type=message_type,
+                                        data=data,
+                                        label=label,
+                                        type='GA',
+                                        action=action)
+                
+                else:
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+    
     return render_template('ocr.html')
 
 @app.route('/ocr/unknown', methods=['GET', 'POST'])
@@ -146,6 +171,9 @@ def unknown():
     message_type = request.args.get('message_type')
     data = request.args.get('data')
     label = request.args.get('label')
+    
+    print(message + ' ' + message_type + ' ' + data + ' ' + label)
+    
     if request.method == 'POST':
         pass
     
@@ -157,9 +185,9 @@ def input_km():
         km = request.form.get('km')
         action = request.form.get('action')
         no_mobil = request.form.get('no_mobil')
-        print(km)
-        print(action)
-        print(no_mobil)
+        
+        ga_km_process(km, no_mobil, action)
+        
         return redirect(url_for('ocr'))
     
 if __name__ == '__main__':
