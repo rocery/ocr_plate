@@ -36,13 +36,14 @@
         <div class="card">
             <div class="card-body">
                 <form id="fromTamu" action="/ocr/unknown" method="post">
-                    <div class="mb-3">
+                    <div class="mb-3 text-start">
                         <label for="no_mobil" class="form-label">Plat Nomor</label>
                         <input type="text" class="form-control" id="no_mobil" name="no_mobil" {% if label %} value="{{ label }}" {% endif %} readonly>
                     </div>
-                    <div class="mb-3">
-                        <label for="inputTujuan">Keperluan</label>
+                    <div class="mb-3 text-start">
+                        <label for="inputTujuan" class="form-label">Keperluan</label>
                         <select class="form-select" id="inputTujuan" name="inputTujuanList">
+                            <option selected disabled value>Pilih Keperluan</option>
                             <option>Ekspedisi</option>
                             <option>Lainnya/Tamu</option>
                         </select>
@@ -51,7 +52,6 @@
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 

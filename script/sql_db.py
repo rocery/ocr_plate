@@ -218,3 +218,29 @@ def masuk_223_tamu(no_mobil, jenis_tamu):
     cursor_masuk_223_tamu.close()
     conn_masuk_223_tamu.close()
     return True
+
+def list_tamu():
+    # SELECT * FROM `ocr` WHERE ekspedisi = 'Tamu' AND pic_stt IS NULL AND keperluan IS NULL ORDER BY tanggal DESC, jam_masuk_pabrik DESC;
+    
+    conn_edit_tamu = iot_223()
+    cursor_edit_tamu = conn_edit_tamu.cursor()
+    cursor_edit_tamu.execute("""
+        SELECT 
+            CONCAT(tanggal, ' ', jam_masuk_pabrik) AS waktu_masuk,
+            no_mobil,
+            ekspedisi,
+            pic_stt,
+            keperluan,
+            CONCAT(tanggal_keluar, ' ', jam_keluar) AS waktu_keluar
+        FROM 
+            ocr
+        WHERE ekspedisi = 'Tamu'
+        -- AND pic_stt IS NULL
+        -- AND keperluan IS NULL
+        ORDER BY tanggal DESC, jam_masuk_pabrik DESC
+    """)
+    result = cursor_edit_tamu.fetchall()
+    
+    cursor_edit_tamu.close()
+    conn_edit_tamu.close()
+    return result
