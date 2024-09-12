@@ -6,10 +6,10 @@
 
 {% block content %}
 <style>
-    #foldersTable {
+    #foldersTable, #dataMobil {
         font-size: 80%;
     }
-    #foldersTable td, #foldersTable th {
+    #foldersTable td, #foldersTable th , #dataMobil td, #dataMobil th {
         text-align: center;
     }
     body {
@@ -61,7 +61,7 @@
 
     {% if type and type|length > 2 %}
     <div class="text-center">
-        <table id="foldersTable" class="table table-borderless table-responsive-sm">
+        <table id="dataMobil"class="table table-borderless table-responsive-sm">
             <thead>
                 <tr>
                     <th>Ekspedisi</th>
@@ -109,17 +109,11 @@
                 <th>Waktu</th>
             </tr>
         </thead>
-        <tbody>
-            {% for row in csv_data %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-            </tr>
-            {% endfor %}
+        <tbody id="tableBody">
+            <!-- Data will be populated here -->
         </tbody>
     </table>
+    
 </div>
 
 <!-- Modal For Input KM -->
@@ -127,23 +121,25 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="kmModalLabel">Input KM</h5>
+                <h5 class="modal-title" id="kmModalLabel">Input KM Kendaraan GA</h5>
             </div>
             <div class="modal-body">
                 <form id="kmForm" method="POST" action="ocr/ga/input_km">
                     <div class="mb-3">
+                        <label for="no_mobil" class="form-label">Plat Nomor</label>
                         <input type="text" class="form-control" id="no_mobil" name="no_mobil" {% if label %} value="{{ label }}" {% endif %} readonly>
                     </div>
                     <div class="mb-3">
+                        <label for="action" class="form-label">Tujuan</label>
                         <input type="text" class="form-control" id="action" name="action" {% if action %} value="{{ action }}" {% endif %} readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="kmInput" class="form-label">KM:</label>
+                        <label for="kmInput" class="form-label">KM</label>
                         <input type="number" class="form-control" id="kmInput" name="km" required>
                     </div>
-                    <!-- <div class="mb-3">
+                    <div class="mb-3">
                         <p>Pastikan KM yang dimasukkan sudah benar sebelum submit.</p>
-                    </div> -->
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -155,8 +151,44 @@
 
 <script>
     window.onload = function() {
+        fetchOCRData();
         checkType();  // Call checkType when the page loads
     };
+
+    function fetchOCRData() {
+        fetch('/ocr/get_data_all_ocr')
+        .then(response => response.json())
+        .then(data => {
+            // Clear the current table body
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';  // Clear existing rows
+
+            // Loop through the data and add new rows to the table
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+
+                const tdNo = document.createElement('td');
+                tdNo.textContent = row[0];
+                tr.appendChild(tdNo);
+
+                const tdPlatNomor = document.createElement('td');
+                tdPlatNomor.textContent = row[1];
+                tr.appendChild(tdPlatNomor);
+
+                const tdKategori = document.createElement('td');
+                tdKategori.textContent = row[2];
+                tr.appendChild(tdKategori);
+
+                const tdWaktu = document.createElement('td');
+                tdWaktu.textContent = row[3];
+                tr.appendChild(tdWaktu);
+
+                // Append the row to the table body
+                tableBody.appendChild(tr);
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
 
     var types = document.getElementById('data');
     console.log(types)
@@ -264,19 +296,9 @@
         }
     }        
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const flashModal = new bootstrap.Modal(document.getElementById('flashModal'));
-        const messages = document.querySelectorAll('.alert');
-        if (messages.length > 0) {
-            flashModal.show();
-            setTimeout(() => {
-                flashModal.hide();
-            }, 2000);
-        }
-    });
-
     var types = document.getElementById('data');
     console.log(types)
+
     $(document).ready(function() {
         $('#foldersTable').DataTable({
             ordering: false, // Disable sorting

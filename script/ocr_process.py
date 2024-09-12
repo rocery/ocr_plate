@@ -3,14 +3,17 @@ from PIL import Image, ImageDraw, ExifTags, UnidentifiedImageError
 import cv2
 from paddleocr import PaddleOCR
 import numpy as np
-from .csv_process import data_photo_uploaded
+from .csv_process import data_photo_uploaded, insert_data_ocr_to_csv
 from .char_prosess import character_cleaning, character_join
 import base64
 from io import BytesIO
 
 ocr = PaddleOCR(enable_mkldnn=False, use_tensorrt=False, use_angle_cls=False, use_gpu=False, lang="en", use_direction_classify=True)
 folder_upload = 'img_ocr/upload/'
+folder_ocr = 'img_ocr/ocr/'
+all_csv_data_photo_ocr = 'img_ocr/ocr/all_data_ocr.csv'
 csv_data_photo_uploaded = 'img_ocr/upload.csv'
+file_extension = None
 
 def img_preprocess(image, action, time_str):
     """
@@ -53,6 +56,7 @@ def img_preprocess(image, action, time_str):
         os.makedirs(folder_uploaded)
     
     # Extract the file extension
+    global file_extension
     file_extension = os.path.splitext(image.filename)[1]
     
     # Construct the new filename with time_str
@@ -168,3 +172,31 @@ def numpy_to_base64(image_np):
     img_str = base64.b64encode(buffer.getvalue()).decode()
     
     return f"data:image/jpeg;base64,{img_str}"
+
+def save_image_ocr(image, datetime, no_mobil, action):
+    # Split the date and time
+    date_part, time_part = datetime.split(' ')
+    # Remove the colons from the time part
+    time_part = time_part.replace(':', '')
+    
+    # Make CSV File Name based on Date
+    csv = f"{date_part}.csv"
+    
+    # Result /img_ocr/ocr/Date
+    folder_path = os.path.join(folder_ocr, date_part)
+    # Result /img_ocr/ocr/Date/{date}.scv
+    csv_path_date = os.path.join(folder_path, csv)
+    csv_path_all = os.path.join(folder_ocr, "all_ocr.csv")
+    
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    
+    global file_extension
+    # B123CA_Masuk_20240515_121231.jpg
+    file_name = f"{no_mobil}_{action}_{date_part}_{time_part}{file_extension}"
+    # /img_ocr/ocr/Date/B123CA_Masuk_20240515_121231.jpg
+    img_path = os.path.join(folder_path, file_name)
+    
+    insert_data_ocr_to_csv(csv_path_date, csv_path_all, img_path, no_mobil, action, datetime)
+    
+    cv2.imwrite(img_path, image)

@@ -12,10 +12,32 @@ def data_photo_uploaded(csv_file_path, photo_path, time_upload, action):
     with open(csv_file_path, mode='a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([photo_path, time_upload, action])
-        
+    
+
+def insert_data_ocr_to_csv(csv_path_date, csv_path_all, img_path, no_mobil, action, datetime):
+    # Check if the file exists; if not, create it and write the header
+    if not os.path.exists(csv_path_date):
+        with open(csv_path_date, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['photo_path', 'ocr', 'category', 'time_ocr'])
+    # Append the new row to the CSV file
+    with open(csv_path_date, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([img_path, no_mobil, action, datetime])
+    
+    # Check if the file exists; if not, create it and write the header
+    if not os.path.exists(csv_path_all):
+        with open(csv_path_all, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['ocr', 'category', 'time_ocr'])
+    # Append the new row to the CSV file
+    with open(csv_path_all, mode='a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([no_mobil, action, datetime])
+
 def read_data_csv():
     data = []
-    file_path = '../img_ocr/ocr/all_data_ocr.csv'
+    file_path = 'img_ocr/ocr/all_ocr.csv'
 
     # Membaca data dari file ocr.csv
     with open(file_path, newline='') as csvfile:

@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify
 import time
-from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64
+from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64, save_image_ocr
 from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
-from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process
+from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process, masuk_223_tamu
+from script.csv_process import read_data_csv
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -76,7 +77,13 @@ def ocr():
                 
                 status_kendaraan_ga = get_kendaraan_ga(label)
                 ekspedisi = get_ekspedisi(label)
-
+                
+                ## def save_image_ocr(image, file_name, folder_date, time_input, label, action):
+                # save_image_ocr(show_label[0], file_name, date_str, time_str, label, action)
+                # Save Image (img, date, datetime, nomobil, action)
+                # "label_action_date_time.file_extension"
+                save_image_ocr(show_label[0], time_str, label, action)
+                
                 # # Test
                 # message = 'Plat Nomor: {}.'.format(label)
                 # message_type = 'success'
@@ -132,8 +139,8 @@ def ocr():
                     message_type = 'danger'
                     return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
                 else:
-                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
-                    message_type = 'success'
+                    message = 'Kendaraan: {} Berhasil Masuk.\nPlat Nomor Tidak Terdaftar.'.format(label)
+                    message_type = 'warning'
                     return redirect(url_for('unknown', message=message, message_type=message_type, data=data, label=label))
             
             # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
@@ -163,21 +170,52 @@ def ocr():
                 else:
                     return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
     
+    
     return render_template('ocr.html')
 
 @app.route('/ocr/unknown', methods=['GET', 'POST'])
 def unknown():
-    message = request.args.get('message')
-    message_type = request.args.get('message_type')
-    data = request.args.get('data')
-    label = request.args.get('label')
-    
-    print(message + ' ' + message_type + ' ' + data + ' ' + label)
+    if request.method == 'GET':
+        try:
+            message = request.args.get('message')
+            message_type = request.args.get('message_type')
+            data = request.args.get('data')
+            label = request.args.get('label')
+            return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+        except:
+            print("Error GET Data unknown()")
+            message = 'Error GET Data unknown() pada Proses Tamu.'
+            message_type = 'danger'
+            return render_template('ocr.html', message=message, message_type=message_type)
     
     if request.method == 'POST':
-        pass
+        try:
+            keperluan = request.form.get('inputTujuanList')
+            no_mobil = request.form.get('no_mobil')
+            
+            if keperluan == 'Lainnya/Tamu':
+                keperluan = 'Tamu'
+                
+            print(f"{keperluan}, {no_mobil}")
+            
+            if keperluan == 'Ekspedisi' or keperluan == 'Tamu':
+                masuk = masuk_223_tamu(no_mobil, keperluan)
+            
+            if masuk:
+                message = 'Kendaraan: {} Berhasil Masuk. Tujuan: {}'.format(no_mobil, keperluan)
+                message_type = 'success'
+                return render_template('ocr.html', message=message, message_type=message_type)
+            else:
+                message = 'Kendaraan: {} Tidak Ditemukan. Tujuan: {}'.format(no_mobil, keperluan)
+                message_type = 'danger'
+                return render_template('ocr.html', message=message, message_type=message_type)
+        
+        except:
+            message = 'Error POST Data unknown() pada Proses Tamu.'
+            message_type = 'danger'
+            return render_template('ocr.html', message=message, message_type=message_type)
     
-    return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+    return redirect(url_for('ocr'))
 
 @app.route('/ocr/ga/input_km', methods=['GET', 'POST'])
 def input_km():
@@ -186,7 +224,7 @@ def input_km():
         action = request.form.get('action')
         no_mobil = request.form.get('no_mobil')
         
-        print("Proses Input KM: " + km + ' ' + no_mobil + ' ' + action)
+        print(f"Data Input KM: {no_mobil} {km} {action}")
         
         status = ga_km_process(no_mobil, km, action)
         if status == False:
@@ -194,7 +232,17 @@ def input_km():
             message_type = 'danger'
             return render_template('ocr.html', message=message, message_type=message_type)
         
-        return redirect(url_for('ocr'))
+        else:
+            message = 'Kendaraan GA: {} Berhasil {}. KM: {}.'.format(no_mobil, action, km)
+            message_type = 'success'
+            return render_template('ocr.html', message=message, message_type=message_type)
+        
+    return redirect(url_for('ocr'))
+
+@app.route("/ocr/get_data_all_ocr")
+def get_data_all_ocr():
+    data = read_data_csv()
+    return jsonify(data)
     
 if __name__ == '__main__':
     app.run(

@@ -143,8 +143,11 @@ def ga_km_process(no_mobil, km, action):
             cursor_ga_km_process.execute("""
                 UPDATE ocr
                 SET km_in = %s
-                WHERE no_mobil = %s AND ekspedisi = 'GA'
-            """, (km, no_mobil_normalized))
+                WHERE no_mobil = %s 
+                AND ekspedisi = 'GA'
+                AND tanggal = %s
+                AND jam_masuk_pabrik = %s
+            """, (km, no_mobil_normalized, latest_date, latest_time))
             conn_ga_km_process.commit()
 
         elif action == 'Keluar':
@@ -152,8 +155,11 @@ def ga_km_process(no_mobil, km, action):
             cursor_ga_km_process.execute("""
                 UPDATE ocr
                 SET km_out = %s
-                WHERE no_mobil = %s AND ekspedisi = 'GA'
-            """, (km, no_mobil_normalized))
+                WHERE no_mobil = %s 
+                AND ekspedisi = 'GA'
+                AND tanggal = %s
+                AND jam_masuk_pabrik = %s
+            """, (km, no_mobil_normalized, latest_date, latest_time))
             conn_ga_km_process.commit()
 
     except Exception as e:
@@ -162,3 +168,53 @@ def ga_km_process(no_mobil, km, action):
         
     cursor_ga_km_process.close()
     conn_ga_km_process.close()
+    
+def masuk_223_tamu(no_mobil, jenis_tamu):
+    conn_masuk_223_tamu = iot_223()
+    cursor_masuk_223_tamu = conn_masuk_223_tamu.cursor()
+    no_mobil_normalized = normalize_no_mobil(no_mobil)
+    
+    # Step 1: Get the latest tanggal for the given no_mobil
+    cursor_masuk_223_tamu.execute("""
+        SELECT MAX(tanggal) 
+        FROM ocr 
+        WHERE no_mobil = %s
+    """, (no_mobil_normalized,))
+    latest_date = cursor_masuk_223_tamu.fetchone()[0]
+    if latest_date is None:
+        return False
+    
+    # Step 2: Get the latest time for the given no_mobil
+    cursor_masuk_223_tamu.execute("""
+        SELECT MAX(jam_masuk_pabrik) 
+        FROM ocr 
+        WHERE no_mobil = %s
+        AND tanggal = %s
+    """, (no_mobil_normalized, latest_date))
+    latest_time = cursor_masuk_223_tamu.fetchone()[0]
+    if latest_time is None:
+        return False
+    
+    if jenis_tamu == 'Ekspedisi':
+        cursor_masuk_223_tamu.execute("""
+            UPDATE ocr
+            SET ekspedisi = %s
+            WHERE no_mobil = %s
+            AND tanggal = %s
+            AND jam_masuk_pabrik = %s
+        """, (jenis_tamu, no_mobil_normalized, latest_date, latest_time))
+        conn_masuk_223_tamu.commit()
+
+    elif jenis_tamu == 'Tamu':
+        cursor_masuk_223_tamu.execute("""
+            UPDATE ocr
+            SET ekspedisi = %s
+            WHERE no_mobil = %s
+            AND tanggal = %s
+            AND jam_masuk_pabrik = %s
+        """, (jenis_tamu, no_mobil_normalized, latest_date, latest_time))
+        conn_masuk_223_tamu.commit()
+    
+    cursor_masuk_223_tamu.close()
+    conn_masuk_223_tamu.close()
+    return True

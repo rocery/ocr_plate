@@ -5,7 +5,55 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    body {
+        padding-top: 56px;
+    }
+</style>
 
-<p>TEST</p>
+<div class="container mt-2">
+    <div class="text-center">
+        <h3>Form Data Kendaraan Tidak Diketahui/Tamu</h3>
+        {% if data %}
+        <div class="text-center mt-2">
+            <!-- <h5>Captured Image with Labels</h5> -->
+            <img src="{{ data }}" alt="Captured Image" class="img-thumbnail mx-auto d-block" style="max-width: 700-x;">
+        </div>
+        {% endif %}
+
+        {% if message %}
+        <div class="alert alert-{{ message_type }} text-center mt-2" role="alert">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        {% if label %}
+        <div class="text-center">
+            <h6>Plat Nomor: {{ label }}</h6>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <form id="fromTamu" action="/ocr/unknown" method="post">
+                    <div class="mb-3">
+                        <label for="no_mobil" class="form-label">Plat Nomor</label>
+                        <input type="text" class="form-control" id="no_mobil" name="no_mobil" {% if label %} value="{{ label }}" {% endif %} readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputTujuan">Keperluan</label>
+                        <select class="form-select" id="inputTujuan" name="inputTujuanList">
+                            <option>Ekspedisi</option>
+                            <option>Lainnya/Tamu</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Input Keperluan</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
 {% endblock %}
