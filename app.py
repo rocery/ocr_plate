@@ -186,7 +186,13 @@ def input_km():
         action = request.form.get('action')
         no_mobil = request.form.get('no_mobil')
         
-        ga_km_process(km, no_mobil, action)
+        print("Proses Input KM: " + km + ' ' + no_mobil + ' ' + action)
+        
+        status = ga_km_process(no_mobil, km, action)
+        if status == False:
+            message = 'Data Kendaraan: {} Tidak Ditemukan.'.format(no_mobil)
+            message_type = 'danger'
+            return render_template('ocr.html', message=message, message_type=message_type)
         
         return redirect(url_for('ocr'))
     

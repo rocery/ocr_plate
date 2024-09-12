@@ -75,7 +75,7 @@ def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
     check_last_status = cursor_masuk_223.fetchone()
     
     if check_last_status:
-        return 'masukr'
+        return 'masuk'
     
     cursor_masuk_223.execute("""
         INSERT INTO ocr (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi)
@@ -99,7 +99,7 @@ def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out):
     result = cursor_keluar_223.fetchone()
     
     if not result:
-        return 'keluarr'
+        return 'keluar'
     
     cursor_keluar_223.execute("""
         UPDATE ocr
@@ -116,21 +116,49 @@ def ga_km_process(no_mobil, km, action):
     cursor_ga_km_process = conn_ga_km_process.cursor()
     no_mobil_normalized = normalize_no_mobil(no_mobil)
     
-    if action == 'Masuk':
+    try:
+        # Step 1: Get the latest tanggal for the given no_mobil
         cursor_ga_km_process.execute("""
-            UPDATE ocr
-            SET km_in = %s
-            WHERE no_mobil = %s AND ekspedisi = 'GA'
-        """, (km, no_mobil_normalized))
-        conn_ga_km_process.commit()
+            SELECT MAX(tanggal) 
+            FROM ocr 
+            WHERE no_mobil = %s
+        """, (no_mobil_normalized,))
+        latest_date = cursor_ga_km_process.fetchone()[0]
+        if latest_date is None:
+            return False
+        
+        # Step 2: Get the latest time for the given no_mobil
+        cursor_ga_km_process.execute("""
+            SELECT MAX(jam_masuk_pabrik) 
+            FROM ocr 
+            WHERE no_mobil = %s
+            AND tanggal = %s
+        """, (no_mobil_normalized, latest_date))
+        latest_time = cursor_ga_km_process.fetchone()[0]
+        if latest_time is None:
+            return False
+        
+        if action == 'Masuk':
+            print("Proses km_in")
+            cursor_ga_km_process.execute("""
+                UPDATE ocr
+                SET km_in = %s
+                WHERE no_mobil = %s AND ekspedisi = 'GA'
+            """, (km, no_mobil_normalized))
+            conn_ga_km_process.commit()
 
-    elif action == 'Keluar':
-        cursor_ga_km_process.execute("""
-            UPDATE ocr
-            SET km_out = %s
-            WHERE no_mobil = %s AND ekspedisi = 'GA'
-        """, (km, no_mobil_normalized))
-        conn_ga_km_process.commit()
-    
+        elif action == 'Keluar':
+            print("Proses km_out")
+            cursor_ga_km_process.execute("""
+                UPDATE ocr
+                SET km_out = %s
+                WHERE no_mobil = %s AND ekspedisi = 'GA'
+            """, (km, no_mobil_normalized))
+            conn_ga_km_process.commit()
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        conn_ga_km_process.rollback()  # Rollback in case of error
+        
     cursor_ga_km_process.close()
     conn_ga_km_process.close()
