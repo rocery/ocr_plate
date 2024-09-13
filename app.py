@@ -10,6 +10,7 @@ import re
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
 USER_SECRET_KEY = 'user123'
+USER_EDIT_TAMU_KEY = 'tamu123'
 
 @app.route('/ocr/login_ocr', methods=['GET', 'POST'])
 def login_ocr():
@@ -18,6 +19,9 @@ def login_ocr():
         if secret_key == USER_SECRET_KEY:
             session['authenticated'] = True
             return redirect(url_for('ocr'))
+        elif secret_key == USER_EDIT_TAMU_KEY:
+            session['authenticated'] = True
+            return redirect(url_for('edit_tamu'))
         else:
             flash('Password salah, silahkan coba kembali.', 'danger')
     
@@ -171,7 +175,6 @@ def ocr():
                 else:
                     return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
     
-    
     return render_template('ocr.html')
 
 @app.route('/ocr/unknown', methods=['GET', 'POST'])
@@ -248,6 +251,9 @@ def get_data_all_ocr():
 STRING_REGEX = re.compile(r"^[A-Za-z\s]+$")
 @app.route("/ocr/edit_tamu", methods=['GET', 'POST'])
 def edit_tamu():
+    if not session.get('authenticated'):
+        return redirect(url_for('login_ocr'))
+    
     list_keperluan = ['Interview', 'BS', 'Sampah']
     data = list_tamu()
     
@@ -272,6 +278,10 @@ def edit_tamu():
             return redirect(url_for('edit_tamu'))
     
     return render_template('edit_tamu.html', list_tamu=data, list_keperluan=list_keperluan)
+
+@app.route("/ocr/data_ocr")
+def data_ocr():
+    return render_template('data_ocr.html')
 
 if __name__ == '__main__':
     app.run(
