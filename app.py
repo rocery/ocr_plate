@@ -3,8 +3,9 @@ import time
 from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64, save_image_ocr
 from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
-from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process, masuk_223_tamu,list_tamu
+from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process, masuk_223_tamu, list_tamu, edit_tamu_sql
 from script.csv_process import read_data_csv
+import re
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -244,44 +245,33 @@ def get_data_all_ocr():
     data = read_data_csv()
     return jsonify(data)
 
+STRING_REGEX = re.compile(r"^[A-Za-z\s]+$")
 @app.route("/ocr/edit_tamu", methods=['GET', 'POST'])
 def edit_tamu():
-    if request.method == 'POST':
-        try:
-            no_mobil = request.form['noMobil']
-            pic_stt = request.form['picSTT']
-            keperluan = request.form['keperluan']
-            
-            print(f"{no_mobil}, {pic_stt}, {keperluan}")
-        except:
-            print("Data tidak ada")
-            
-        return redirect(url_for('edit_tamu'))
-            
     list_keperluan = ['Interview', 'BS', 'Sampah']
     data = list_tamu()
     
-    return render_template('edit_tamu.html', list_tamu=data, list_keperluan=list_keperluan)
-
-@app.route('/ocr/update_tamu', methods=['POST'])
-def update_tamu():
     if request.method == 'POST':
         try:
             no_mobil = request.form['noMobil']
             pic_stt = request.form['picSTT']
             keperluan = request.form['keperluan']
-            
-            print(f"{no_mobil}, {pic_stt}, {keperluan}")
+            datetime = request.form['dateTime']
         except:
             print("Data tidak ada")
+            
+        print(f"{no_mobil}, {pic_stt}, {keperluan}, {datetime}")
+            
+        if not STRING_REGEX.match(pic_stt):
+            flash('Input PIC STT harus berupa huruf.', 'danger')
+            return redirect(url_for('edit_tamu'))
+            
+        status_edit = edit_tamu_sql(datetime, no_mobil, keperluan, pic_stt)
+        if status_edit != False:
+            flash(f'Data Tamu {no_mobil} Berhasil Diperbarui.', 'success')
+            return redirect(url_for('edit_tamu'))
     
-    return redirect(url_for('edit_tamu'))
-    # Update the database with the new values
-    # Assuming you have a function to update the data
-    # update_data_in_db(no_mobil, pic_stt, keperluan)
-    
-    # Redirect or return a response
-    # return redirect(url_for('your_page_route'))
+    return render_template('edit_tamu.html', list_tamu=data, list_keperluan=list_keperluan)
 
 if __name__ == '__main__':
     app.run(

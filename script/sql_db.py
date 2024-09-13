@@ -244,3 +244,18 @@ def list_tamu():
     cursor_edit_tamu.close()
     conn_edit_tamu.close()
     return result
+
+def edit_tamu_sql(datetime, no_mobil, keperluan, pic_stt):
+    conn_edit_tamu = iot_223()
+    cursor_edit_tamu = conn_edit_tamu.cursor()
+    cursor_edit_tamu.execute("""
+        UPDATE ocr
+        SET pic_stt = %s, keperluan = %s
+        WHERE no_mobil = %s
+        AND ekspedisi = 'Tamu'
+        AND CONCAT(tanggal, ' ', jam_masuk_pabrik) = %s
+    """, (pic_stt, keperluan, no_mobil, datetime))
+    conn_edit_tamu.commit()
+    
+    cursor_edit_tamu.close()
+    conn_edit_tamu.close()

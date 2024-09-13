@@ -7,6 +7,7 @@
         <link rel="icon" href="{{ url_for('static', filename='img/ocr.png') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dataTables/dataTables.bootstrap5.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
     </head>
     <style>
         /* CSS untuk memusatkan teks dan mengatur ukuran font */
@@ -56,11 +57,13 @@
                         <td>
                             {% if not row[3] and not row[4] %}
                             <!-- Edit Button to trigger the modal -->
-                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="populateModal('{{ row[1] }}', '{{ row[2] }}')">
-                                Isi Keperluan
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="populateModal('{{ row[0] }}','{{ row[1] }}', '{{ row[2] }}')">
+                                <i class="fa-solid fa-pen-to-square" style="color: black;"></i>
                             </button>
                             {% else %}
-                            -
+                            <button type="button" class="btn btn-success btn-sm" disabled>
+                                <i class="fa-solid fa-square-check" style="color: black;"></i>
+                            </button>
                             {% endif %}
                         </td>
                     </tr>
@@ -75,35 +78,63 @@
             <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header text-center">
                             <h5 class="modal-title" id="editModalLabel">Isi Keperluan Tamu</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form id="editForm" action="/ocr/update_tamu" method="POST">
-                                <div class="mb-2">
-                                    <label for="noMobil" class="form-label">No Mobil</label>
-                                    <input type="text" class="form-control" id="noMobil" name="noMobil" readonly>
+                            <form id="editForm" action="/ocr/edit_tamu" method="POST">
+                                <!-- Plat Nomor -->
+                                <div class="mb-3 row">
+                                    <label for="noMobil" class="col-sm-3 col-form-label">No Mobil</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="noMobil" name="noMobil" readonly>
+                                    </div>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="picSTT" class="form-label">PIC STT</label>
-                                    <input type="text" class="form-control" id="picSTT" name="picSTT" required>
-                                    <small id="picSTTHelp" class="form-text text-muted">Diisi Nama PIC STT atau Penerima Tamu.</small>
+                                <!-- Tanggal -->
+                                <div class="mb-3 row">
+                                    <label for="dateTime" class="col-sm-3 col-form-label">Waktu Masuk</label>
+                                    <div class="col-sm-9">
+                                        <input type="datetime" class="form-control" id="dateTime" name="dateTime" readonly>
+                                    </div>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="inputTujuan" class="form-label">Keperluan</label>
-                                    <select class="form-select" id="keperluan" name="keperluan" required>
-                                        <option selected disabled value="">Pilih Keperluan</option>
-                                        {% for item in list_keperluan %}
-                                            <option value="{{ item }}">{{ item }}</option>
-                                        {% endfor %}
-                                    </select>
+                                <!-- Nama PIC -->
+                                <div class="mb-3 row">
+                                    <label for="picSTT" class="col-sm-3 col-form-label">PIC STT</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" id="picSTT" name="picSTT" required placeholder="Nama">
+                                        <small id="picSTTHelp" class="form-text text-muted">Diisi Nama PIC STT atau Penerima Tamu.</small>
+                                    </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Simpan Data</button>
+                                <!-- Keperluan -->
+                                <div class="mb-3 row">
+                                    <label for="inputTujuan" class="col-sm-3 col-form-label">Keperluan</label>
+                                    <div class="col-sm-9">
+                                        <select class="form-select" id="keperluan" name="keperluan" required>
+                                            <option selected disabled value="">Pilih Keperluan</option>
+                                            {% for item in list_keperluan %}
+                                                <option value="{{ item }}">{{ item }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="container mt-3">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
             </div>
         </div>
 
@@ -129,9 +160,10 @@
                 });
             });
 
-            function populateModal(noMobil, status) {
+            function populateModal(dateTime, noMobil, status) {
                 // Populate the modal fields with current data
                 document.getElementById('noMobil').value = noMobil;
+                document.getElementById('dateTime').value = dateTime;
                 // You can fetch the other data if needed or keep them editable
                 document.getElementById('picSTT').value = '';
                 document.getElementById('keperluan').value = '';
