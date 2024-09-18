@@ -162,33 +162,52 @@
             // Clear the current table body
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';  // Clear existing rows
-
+    
             // Loop through the data and add new rows to the table
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
-
+    
                 const tdNo = document.createElement('td');
                 tdNo.textContent = row[0];
                 tr.appendChild(tdNo);
-
+    
                 const tdPlatNomor = document.createElement('td');
                 tdPlatNomor.textContent = row[1];
                 tr.appendChild(tdPlatNomor);
-
+    
                 const tdKategori = document.createElement('td');
                 tdKategori.textContent = row[2];
                 tr.appendChild(tdKategori);
-
+    
                 const tdWaktu = document.createElement('td');
                 tdWaktu.textContent = row[3];
                 tr.appendChild(tdWaktu);
-
+    
                 // Append the row to the table body
                 tableBody.appendChild(tr);
+            });
+    
+            // Reinitialize the DataTable after data is populated
+            $('#foldersTable').DataTable().destroy();  // Destroy the existing instance
+            $('#foldersTable').DataTable({
+                ordering: true, // Enable sorting
+                paging: true,
+                pageLength: 10,
+                lengthMenu: [10, 50, 100],
+                language: {
+                    search: 'Cari Data',
+                    lengthMenu: '_MENU_  Data Per Halaman',
+                    info: 'Menampilkan _START_ hingga _END_ dari total _TOTAL_ data',
+                    infoEmpty: 'Menampilkan 0 hingga 0 dari 0 data',
+                }
             });
         })
         .catch(error => console.error('Error fetching data:', error));
     }
+    
+    $(document).ready(function() {
+        fetchOCRData();  // Fetch data and initialize the table
+    });
 
     var types = document.getElementById('data');
     console.log(types)
@@ -298,21 +317,6 @@
 
     var types = document.getElementById('data');
     console.log(types)
-
-    $(document).ready(function() {
-        $('#foldersTable').DataTable({
-            ordering: false, // Disable sorting
-            paging: true,
-            pageLength: 10,
-            lengthMenu: [ 10, 50, 100 ],
-            language: {
-                search: 'Cari Data',
-                lengthMenu: '_MENU_  Data Per Halaman',
-                info: 'Menampilkan _START_ hingga _END_ dari total _TOTAL_ data',
-                infoEmpty: 'Menampilkan 0 hingga 0 dari 0 data',
-            }
-        });
-    });
 </script>
 
 {% endblock %}
