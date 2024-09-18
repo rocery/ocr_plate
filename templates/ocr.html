@@ -225,6 +225,22 @@
     }
 
     function submitForm2() {
+        const kmValue = document.getElementById('kmInput').value;
+    
+        if (!kmValue) {
+            alert('Form KM Harus Diisi.');
+            return false;  // Prevent form submission
+        }
+        
+        if (kmValue < 0) {
+            alert('KM Tidak Bisa Bernilai Negatif.');
+            return false;  // Prevent form submission
+        }
+
+        if (kmValue == "") {
+            alert('KM Harus Diisi.');
+            return false;  // Prevent form submission
+        }
         document.getElementById('kmForm').submit();
     }
 
@@ -317,6 +333,22 @@
 
     var types = document.getElementById('data');
     console.log(types)
+
+    function validateKM() {
+        const kmValue = document.getElementById('kmInput').value;
+    
+        if (!kmValue) {
+            alert('Form KM Harus Diisi.');
+            return false;  // Prevent form submission
+        }
+        
+        if (kmValue < 0) {
+            alert('KM Tidak Bisa Bernilai Negatif.');
+            return false;  // Prevent form submission
+        }
+    
+        return true;  // Allow form submission
+    }
 </script>
 
 {% endblock %}
