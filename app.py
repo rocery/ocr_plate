@@ -69,7 +69,7 @@ def ocr():
                 if ocr_result == False:
                     message = 'Tidak Terdeteksi Angka/Huruf Pada Foto. Silahkan Ulangi Proses Upload. Error Code: 0x2'
                     message_type = 'danger'
-                    render_template('ocr.html', message=message, message_type=message_type)
+                    return render_template('ocr.html', message=message, message_type=message_type)
                 
                 show_label = show_labels(image, ocr_result)
                 label = show_label[1]
@@ -78,7 +78,7 @@ def ocr():
                 if character_check(label) == False:
                     message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
                     message_type = 'danger'
-                    render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
                 
                 status_kendaraan_ga = get_kendaraan_ga(label)
                 ekspedisi = get_ekspedisi(label)
@@ -146,7 +146,7 @@ def ocr():
                 else:
                     message = 'Kendaraan: {} Berhasil Masuk.\nPlat Nomor Tidak Terdaftar.'.format(label)
                     message_type = 'warning'
-                    return redirect(url_for('unknown', message=message, message_type=message_type, data=data, label=label))
+                    return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
             
             # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
         
