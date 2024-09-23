@@ -63,7 +63,7 @@ def get_kendaraan_ga(no_mobil):
     
     return True if result else False
 
-def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
+def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi, km = None):
     conn_masuk_223 = iot_223()
     cursor_masuk_223 = conn_masuk_223.cursor()
     
@@ -83,10 +83,13 @@ def masuk_223(tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi):
     """, (tanggal, no_mobil, jam_masuk_pabrik, user_in, ekspedisi))
     conn_masuk_223.commit()
     
+    if km is not None:
+        ga_km_process(no_mobil, km, 'Masuk')
+    
     cursor_masuk_223.close()
     conn_masuk_223.close()
     
-def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out):
+def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out, km = None):
     conn_keluar_223 = iot_223()
     cursor_keluar_223 = conn_keluar_223.cursor()
     no_mobil_normalized = normalize_no_mobil(no_mobil)
@@ -107,6 +110,9 @@ def keluar_223(tanggal, no_mobil, jam_keluar_pabrik, user_out):
         WHERE no_mobil = %s AND tanggal_keluar IS NULL
     """, (tanggal, jam_keluar_pabrik, user_out, no_mobil_normalized))
     conn_keluar_223.commit()
+    
+    if km is not None:
+        ga_km_process(no_mobil, km, 'Keluar')
     
     cursor_keluar_223.close()
     conn_keluar_223.close()

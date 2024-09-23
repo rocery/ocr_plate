@@ -43,10 +43,24 @@ def ocr():
     if not session.get('authenticated'):
         return redirect(url_for('login_ocr'))
 
-    if request.method == 'POST':
-        # csv_data = read_data_csv()
+    if request.method == 'POST':    
         action = request.form['action']
         image = request.files['image']
+        
+        try:
+            entryType = request.form['entryType']
+        except:
+            return render_template('ocr.html', message='Jenis Kendaraan Tidak Valid. Mohon Untuk Input Ulang.', message_type='danger')
+        km = None
+        
+        if entryType == 'GA':
+            km = request.form.get('km')
+            print(type(km))
+            if km == '' or km is None:
+                return render_template('ocr.html', message='KM GA Tidak Valid. Mohon Untuk Input Ulang.', message_type='danger')
+        
+        print(f"Action: {action}, Img: {type(image)}, Entry Type: {entryType}, KM: {km}")
+        
         
         if image:
             try:
@@ -60,6 +74,7 @@ def ocr():
                 try:
                     image = detect_license_plate(image)
                 except:
+                    # Save to csv undetected_plate.csv
                     message = 'Tidak Terdeteksi Plat Nomor Pada Gambar. Silahkan Ulangi Proses Upload. Error Code: 0x1'
                     message_type = 'danger'
                     return render_template('ocr.html', message=message, message_type=message_type)
@@ -67,6 +82,7 @@ def ocr():
                 ocr_result = ocr_predict(image)
                 
                 if ocr_result == False:
+                    # Save to csv undetected_ocr.csv
                     message = 'Tidak Terdeteksi Angka/Huruf Pada Foto. Silahkan Ulangi Proses Upload. Error Code: 0x2'
                     message_type = 'danger'
                     return render_template('ocr.html', message=message, message_type=message_type)
@@ -76,12 +92,10 @@ def ocr():
                 data = numpy_to_base64(show_label[0])
                 
                 if character_check(label) == False:
+                    # Save to csv wrong_ocr.csv
                     message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
                     message_type = 'danger'
                     return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                
-                status_kendaraan_ga = get_kendaraan_ga(label)
-                ekspedisi = get_ekspedisi(label)
                 
                 ## def save_image_ocr(image, file_name, folder_date, time_input, label, action):
                 # save_image_ocr(show_label[0], file_name, date_str, time_str, label, action)
@@ -99,81 +113,145 @@ def ocr():
                 message = 'Foto Yang Diupload Salah, Silahkan Ulangi Proses Upload. Error 0x4'
                 message_type = 'danger'
                 return render_template('ocr.html', message=message, message_type=message_type)
-        
+            
         if action == 'Masuk':
-            # print("Plat Nomor : {}".format(label))
-            # print("Data Gambar: {}".format(type(data)))
             last_loc = None
-            
-            if status_kendaraan_ga == True:
-                last_loc = masuk_223(date_, label, time_, 'security', 'GA')
-                print(last_loc)
-                print(status_kendaraan_ga)
-                if last_loc == 'masuk':
-                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
-                    message_type = 'danger'
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+            if entryType == 'Ekspedisi':
+                ekspedisi = get_ekspedisi(label)
+                if ekspedisi is not None:
+                    last_loc = masuk_223(date_, label, time_, 'security', ekspedisi[0])
+                    if last_loc == 'masuk':
+                        message = 'Ekspedisi: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                        message_type = 'danger'
+                        return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                    else:
+                        message = 'Ekspedisi: {} Berhasil Masuk.'.format(label)
+                        message_type = 'success'
+                        return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type=ekspedisi)
                 else:
-                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
-                    message_type = 'success'
-                    return render_template('ocr.html',
-                                           message=message,
-                                           message_type=message_type,
-                                           data=data,
-                                           label=label,
-                                           type='GA',
-                                           action=action)
-            
-            elif ekspedisi:
-                last_loc = masuk_223(date_, label, time_, 'security', ekspedisi[0])
-                print(last_loc)
-                print(ekspedisi)
-                if last_loc == 'masuk':
-                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
-                    message_type = 'danger'
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                else:
-                    message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
-                    message_type = 'success'
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type=ekspedisi)
-            
-            else:
-                last_loc = masuk_223(date_, label, time_, 'security', '-')
-                if last_loc == 'masuk':
-                    message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
-                    message_type = 'danger'
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                else:
-                    message = 'Kendaraan: {} Berhasil Masuk.\nPlat Nomor Tidak Terdaftar.'.format(label)
+                    masuk_223(date_, label, time_, 'security', entryType)
+                    message = 'Ekspedisi: {} Tidak Terdaftar. Proses Tetap Dilanjutkan.'.format(label)
                     message_type = 'warning'
-                    return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
             
-            # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-        
-        elif action == 'Keluar':
-            last_loc = None
+            elif entryType == 'GA':
+                status_kendaraan_ga = get_kendaraan_ga(label)
+                if status_kendaraan_ga:
+                    last_loc = masuk_223(date_, label, time_, 'security', entryType, km)
+                    if last_loc == 'masuk':
+                        message = 'GA: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                        message_type = 'danger'
+                        return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                    else:
+                        message = 'GA: {} Berhasil Masuk.'.format(label)
+                        message_type = 'success'
+                        return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                else:
+                    message = 'GA: {} Tidak Terdaftar Sebagai GA.'.format(label)
+                    message_type = 'danger'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                
+            elif entryType == 'Tamu':
+                last_loc = masuk_223(date_, label, time_, 'security', entryType)
+                if last_loc == 'masuk':
+                    message = 'Tamu: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+                    message_type = 'danger'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                else:
+                    message = 'Tamu: {} Berhasil Masuk. Hubungi Admin Untuk Pengisian Data PIC dan Keperluan.'.format(label)
+                    message_type = 'success'
+                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+                
+            else:
+                message = 'Keperluan Tidak Diketahui.'
+                message_type = 'danger'
+                return render_template('ocr.html', message=message, message_type=message_type)
             
-            last_loc = keluar_223(date_, label, time_, 'security')
-            
+        if action == 'Keluar':
+            last_loc = keluar_223(date_, label, time_, 'security', km)
             if last_loc == 'keluar':
-                message = 'Kendaraan: {} Sudah Di Keluar. Tidak Bisa Diproses Keluar 2x.'.format(label)
+                message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Keluar 2x.'.format(label)
                 message_type = 'danger'
                 return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-            
             else:
                 message = 'Kendaraan: {} Berhasil Keluar.'.format(label)
                 message_type = 'success'
-                if status_kendaraan_ga == True:
-                    return render_template('ocr.html',
-                                        message=message,
-                                        message_type=message_type,
-                                        data=data,
-                                        label=label,
-                                        type='GA',
-                                        action=action)
+                return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+            
+        # if action == 'Masuk':
+        #     # print("Plat Nomor : {}".format(label))
+        #     # print("Data Gambar: {}".format(type(data)))
+        #     last_loc = None
+            
+        #     if status_kendaraan_ga == True:
+        #         last_loc = masuk_223(date_, label, time_, 'security', 'GA')
+        #         print(last_loc)
+        #         print(status_kendaraan_ga)
+        #         if last_loc == 'masuk':
+        #             message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+        #             message_type = 'danger'
+        #             return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        #         else:
+        #             message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
+        #             message_type = 'success'
+        #             return render_template('ocr.html',
+        #                                    message=message,
+        #                                    message_type=message_type,
+        #                                    data=data,
+        #                                    label=label,
+        #                                    type='GA',
+        #                                    action=action)
+            
+        #     elif ekspedisi:
+        #         last_loc = masuk_223(date_, label, time_, 'security', ekspedisi[0])
+        #         print(last_loc)
+        #         print(ekspedisi)
+        #         if last_loc == 'masuk':
+        #             message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+        #             message_type = 'danger'
+        #             return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        #         else:
+        #             message = 'Kendaraan: {} Berhasil Masuk.'.format(label)
+        #             message_type = 'success'
+        #             return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label, type=ekspedisi)
+            
+        #     else:
+        #         last_loc = masuk_223(date_, label, time_, 'security', '-')
+        #         if last_loc == 'masuk':
+        #             message = 'Kendaraan: {} Sudah Didalam. Tidak Bisa Diproses Masuk 2x.'.format(label)
+        #             message_type = 'danger'
+        #             return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        #         else:
+        #             message = 'Kendaraan: {} Berhasil Masuk.\nPlat Nomor Tidak Terdaftar.'.format(label)
+        #             message_type = 'warning'
+        #             return render_template('unknown.html', message=message, message_type=message_type, data=data, label=label)
+            
+        #     # return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        
+        # elif action == 'Keluar':
+        #     last_loc = None
+            
+        #     last_loc = keluar_223(date_, label, time_, 'security')
+            
+        #     if last_loc == 'keluar':
+        #         message = 'Kendaraan: {} Sudah Di Keluar. Tidak Bisa Diproses Keluar 2x.'.format(label)
+        #         message_type = 'danger'
+        #         return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+            
+        #     else:
+        #         message = 'Kendaraan: {} Berhasil Keluar.'.format(label)
+        #         message_type = 'success'
+        #         if status_kendaraan_ga == True:
+        #             return render_template('ocr.html',
+        #                                 message=message,
+        #                                 message_type=message_type,
+        #                                 data=data,
+        #                                 label=label,
+        #                                 type='GA',
+        #                                 action=action)
                 
-                else:
-                    return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
+        #         else:
+        #             return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
     
     return render_template('ocr.html')
 

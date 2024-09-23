@@ -22,12 +22,37 @@
         <div class="card-body">
             <form id="actionForm" action="/ocr" method="post" enctype="multipart/form-data">
                 <div class="mb-3 text-center">
-                    <label for="image" class="form-label">Pilih Foto yang Akan Diproses</label>
-                    <input class="form-control" type="file" id="image" name="image" capture="environment" accept="image/*;capture=environment" onchange="previewImage(event)">
+                    <label for="image" class="form-label">Pilih Foto yang Akan Diproses dan Jenis Kendaraan</label>
+                    <input class="form-control" type="file" id="image" name="image" capture="environment" accept="image/*;capture=environment" onchange="previewImage(event)" required>
                 </div>
+                
+                <!-- Radio buttons -->
                 <div class="mb-3">
+                    <div class="row text-center">
+                        <div class="col">
+                            <input type="radio" class="form-check-input" id="ekspedisi" name="entryType" value="Ekspedisi" onclick="toggleKmInput(this)">
+                            <label for="ekspedisi">Ekspedisi</label>
+                        </div>
+                        <div class="col">
+                            <input type="radio" class="form-check-input" id="tamu" name="entryType" value="Tamu" onclick="toggleKmInput(this)">
+                            <label for="tamu">Tamu</label>
+                        </div>
+                        <div class="col">
+                            <input type="radio" class="form-check-input" id="ga" name="entryType" value="GA" onclick="toggleKmInput(this)">
+                            <label for="ga">GA</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- KM input, hidden by default -->
+                <div class="container mb-3" id="kmInputDiv" style="display: none;">
+                    <input type="number" id="km" name="km" class="form-control" placeholder="KM Kendaraan" required>
+                </div>
+
+                <!-- Image Preview -->
+                <div class="mb-3"></div>
                     <img id="imagePreview" class="mx-auto d-block img-thumbnail" src="#" alt="Image preview" style="display:none !important; max-width: 100%; height: auto;">
                 </div>
+                
                 <div class="mb-3">
                     <div class="row">
                         <div class="col-6">
@@ -37,7 +62,8 @@
                             <button type="button" id="keluarButton" class="btn btn-danger btn-lg w-100" onclick="submitForm('Keluar')" disabled>Keluar</button>
                         </div>
                     </div>
-                    <!-- ADD Loading -->
+    
+                    <!-- Loading button -->
                     <button class="btn btn-secondary btn-lg w-100" id="loadingButton" style="display: none;" disabled>
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
@@ -248,10 +274,10 @@
         const input = event.target;
         const file = input.files[0];
         const preview = document.getElementById('imagePreview');
-    
+
         if (file) {
             console.log(`Original Image Size: ${file.size / 1024} KB`);
-    
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -259,44 +285,45 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-    
+
                     const maxWidth = 2000; // Set the desired maximum width
                     let width = img.width;
                     let height = img.height;
-    
+
                     if (width > maxWidth) {
                         height *= maxWidth / width;
                         width = maxWidth;
                     }
-    
+
                     canvas.width = width;
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-    
+
                     canvas.toBlob(function(blob) {
                         console.log(`Resized Image Size: ${blob.size / 1024} KB`);
-    
+
                         // Create a new File object with the processed image
                         const resizedFile = new File([blob], file.name, {
                             type: file.type,
                             lastModified: Date.now()
                         });
-    
+
                         // Replace the original file in the input with the resized file
                         const dataTransfer = new DataTransfer();
                         dataTransfer.items.add(resizedFile);
                         input.files = dataTransfer.files;
-    
+
                         const resizedReader = new FileReader();
                         resizedReader.onload = function(e) {
                             preview.src = e.target.result;
                             preview.style.display = 'block';
                         };
                         resizedReader.readAsDataURL(resizedFile);
-    
+
                         // Enable buttons when a file is selected
                         document.getElementById('masukButton').disabled = false;
                         document.getElementById('keluarButton').disabled = false;
+
                     }, file.type);
                 };
             };
@@ -304,7 +331,7 @@
         } else {
             preview.src = '#';
             preview.style.display = 'none';
-    
+
             // Disable buttons if no file is selected
             document.getElementById('masukButton').disabled = true;
             document.getElementById('keluarButton').disabled = true;
@@ -329,7 +356,17 @@
             // Submit the form
             form.submit();
         }
-    }        
+    }
+
+    function toggleKmInput(selectedOption) {
+        console.log("Selected option:", selectedOption.value);
+        // Check which radio button is selected
+        const isGASelected = document.getElementById('ga').checked;
+        const kmInputDiv = document.getElementById('kmInputDiv');
+        
+        // Show or hide the KM input based on the selection
+        kmInputDiv.style.display = isGASelected ? 'block' : 'none';
+    }
 
     var types = document.getElementById('data');
     console.log(types)
