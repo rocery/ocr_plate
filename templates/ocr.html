@@ -22,37 +22,36 @@
         <div class="card-body">
             <form id="actionForm" action="/ocr" method="post" enctype="multipart/form-data">
                 <div class="mb-3 text-center">
-                    <label for="image" class="form-label">Pilih Foto yang Akan Diproses dan Jenis Kendaraan</label>
-                    <input class="form-control" type="file" id="image" name="image" capture="environment" accept="image/*;capture=environment" onchange="previewImage(event)" required>
+                    <label for="image" class="form-label">Pilih Foto yang Akan Diproses</label>
+                    <input class="form-control" type="file" id="image" name="image" capture="environment" accept="image/*;capture=environment" onchange="previewImage(event)">
                 </div>
-                
+
                 <!-- Radio buttons -->
                 <div class="mb-3">
                     <div class="row text-center">
-                        <div class="col">
+                        <div class="col-4">
                             <input type="radio" class="form-check-input" id="ekspedisi" name="entryType" value="Ekspedisi" onclick="toggleKmInput(this)">
                             <label for="ekspedisi">Ekspedisi</label>
                         </div>
-                        <div class="col">
+                        <div class="col-4">
                             <input type="radio" class="form-check-input" id="tamu" name="entryType" value="Tamu" onclick="toggleKmInput(this)">
                             <label for="tamu">Tamu</label>
                         </div>
-                        <div class="col">
+                        <div class="col-4">
                             <input type="radio" class="form-check-input" id="ga" name="entryType" value="GA" onclick="toggleKmInput(this)">
                             <label for="ga">GA</label>
                         </div>
                     </div>
                 </div>
                 <!-- KM input, hidden by default -->
-                <div class="container mb-3" id="kmInputDiv" style="display: none;">
+                <div class="mb-3" id="kmInputDiv" style="display: none;">
                     <input type="number" id="km" name="km" class="form-control" placeholder="KM Kendaraan" required>
                 </div>
 
-                <!-- Image Preview -->
-                <div class="mb-3"></div>
+                <div class="mb-3">
                     <img id="imagePreview" class="mx-auto d-block img-thumbnail" src="#" alt="Image preview" style="display:none !important; max-width: 100%; height: auto;">
                 </div>
-                
+
                 <div class="mb-3">
                     <div class="row">
                         <div class="col-6">
@@ -62,8 +61,7 @@
                             <button type="button" id="keluarButton" class="btn btn-danger btn-lg w-100" onclick="submitForm('Keluar')" disabled>Keluar</button>
                         </div>
                     </div>
-    
-                    <!-- Loading button -->
+                    <!-- ADD Loading -->
                     <button class="btn btn-secondary btn-lg w-100" id="loadingButton" style="display: none;" disabled>
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
