@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Data | OCR</title>
+        <title>Ekspedisi | OCR</title>
         <link rel="icon" href="{{ url_for('static', filename='img/ocr.png') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dataTables/dataTables.bootstrap5.css') }}">
@@ -30,13 +30,13 @@
                             <a class="nav-link" href="{{ url_for('edit_tamu') }}">Tamu</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('list_ekspedisi') }}">Ekspedisi</a>
+                            <a class="nav-link active" href="{{ url_for('list_ekspedisi') }}">Ekspedisi</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('list_ga') }}">GA</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="{{ url_for('data_ocr') }}">All Data</a>
+                            <a class="nav-link" href="{{ url_for('data_ocr') }}">All Data</a>
                         </li>
                     </ul>
                 </div>
@@ -46,17 +46,14 @@
     
         <!-- Content area -->
         <div class="container mt-2">
-            <h4 class="mt-3 text-center">Data OCR</h4>
+            <h4 class="mt-3 text-center">Data Kendaraan Ekspedisi</h4>
             {% if data %}
             <table id="tableListTamu" class="table table-hover">
                 <thead>
                     <tr>
                         <th>Waktu Masuk</th>
                         <th>No Mobil</th>
-                        <th>Ekspedisi</th>
-                        <th>PIC STT</th>
-                        <th>Keperluan</th>
-                        <th>KM IN | OUT</th>
+                        <th>Status</th>
                         <th>Waktu Keluar</th>
                     </tr>
                 </thead>
@@ -67,9 +64,7 @@
                         <td>{{ row[1] }}</td>
                         <td>{{ row[2] }}</td>
                         <td>{{ row[3] if row[3] else '-' }}</td>
-                        <td>{{ row[4] if row[4] else '-' }}</td>
-                        <td>{{ row[5] if row[5] else '-' }}</td>
-                        <td>{{ row[6] if row[6] else '-' }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

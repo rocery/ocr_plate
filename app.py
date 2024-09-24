@@ -3,7 +3,7 @@ import time
 from script.ocr_process import ocr_predict, img_preprocess, show_labels, numpy_to_base64, save_image_ocr
 from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
-from script.sql_db import get_ekspedisi, get_kendaraan_ga, masuk_223, keluar_223, ga_km_process, masuk_223_tamu, list_tamu, edit_tamu_sql
+from script.sql_db import *
 from script.csv_process import read_data_csv
 import re
 
@@ -357,12 +357,24 @@ def edit_tamu():
     
     return render_template('edit_tamu.html', list_tamu=data, list_keperluan=list_keperluan)
 
+@app.route("/ocr/list_ga")
+def list_ga():
+    data = list_ga_sql()
+    return render_template('list_ga.html', data = data)
+
+@app.route("/ocr/list_ekspedisi")
+def list_ekspedisi():
+    data = list_ekspedisi_sql()
+    return render_template('list_ekspedisi.html', data = data)
+
 @app.route("/ocr/data_ocr")
 def data_ocr():
-    return render_template('data_ocr.html')
+    data = all_data_sql()
+    return render_template('data_ocr.html', data = data)
 
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=5000,
+        debug=True
     )

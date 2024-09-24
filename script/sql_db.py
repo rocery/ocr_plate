@@ -265,3 +265,67 @@ def edit_tamu_sql(datetime, no_mobil, keperluan, pic_stt):
     
     cursor_edit_tamu.close()
     conn_edit_tamu.close()
+    
+def list_ekspedisi_sql():
+    conn_list_ekspedisi = iot_223()
+    cursor_list_ekspedisi = conn_list_ekspedisi.cursor()
+    cursor_list_ekspedisi.execute("""
+        SELECT 
+            CONCAT(tanggal, ' ', jam_masuk_pabrik) AS waktu_masuk,
+            no_mobil,
+            ekspedisi,
+            CONCAT(tanggal_keluar, ' ', jam_keluar) AS waktu_keluar
+        FROM 
+            ocr
+        WHERE ekspedisi != 'Tamu'
+        AND ekspedisi != 'GA'
+        ORDER BY tanggal DESC, jam_masuk_pabrik DESC
+    """)
+    result = cursor_list_ekspedisi.fetchall()
+    
+    cursor_list_ekspedisi.close()
+    conn_list_ekspedisi.close()
+    return result
+
+def list_ga_sql():
+    conn_list_ga = iot_223()
+    cursor_list_ga = conn_list_ga.cursor()
+    cursor_list_ga.execute("""
+        SELECT 
+            CONCAT(tanggal, ' ', jam_masuk_pabrik) AS waktu_masuk,
+            no_mobil,
+            km_in,
+            km_out,
+            CONCAT(tanggal_keluar, ' ', jam_keluar) AS waktu_keluar
+        FROM 
+            ocr
+        WHERE ekspedisi = 'GA'
+        ORDER BY tanggal DESC, jam_masuk_pabrik DESC
+    """)
+    result = cursor_list_ga.fetchall()
+    
+    cursor_list_ga.close()
+    conn_list_ga.close()
+    return result
+
+def all_data_sql():
+    conn_all_data = iot_223()
+    cursor_all_data = conn_all_data.cursor()
+    cursor_all_data.execute("""
+        SELECT 
+            CONCAT(tanggal, ' ', jam_masuk_pabrik) AS waktu_masuk,
+            no_mobil,
+            ekspedisi,
+            pic_stt,
+            keperluan,
+            CONCAT(km_in, ' | ', km_out) AS km,
+            CONCAT(tanggal_keluar, ' ', jam_keluar) AS Waktu_keluar
+        FROM 
+            ocr
+        ORDER BY tanggal DESC, jam_masuk_pabrik DESC
+    """)
+    result = cursor_all_data.fetchall()
+    
+    cursor_all_data.close()
+    conn_all_data.close()
+    return result
