@@ -91,12 +91,15 @@ def ocr():
                 label = show_label[1]
                 data = numpy_to_base64(show_label[0])
                 
-                if character_check(label) == False:
+                result, value = character_check(label)
+                if result == False:
                     # Save to csv wrong_ocr.csv
                     message = 'Plat Nomor Terbaca Salah. Mohon Ulangion Proses Upload. Error Code: 0x3'
                     message_type = 'danger'
                     return render_template('ocr.html', message=message, message_type=message_type, data=data, label=label)
-                
+                else:
+                    label = value
+                    
                 ## def save_image_ocr(image, file_name, folder_date, time_input, label, action):
                 # save_image_ocr(show_label[0], file_name, date_str, time_str, label, action)
                 # Save Image (img, date, datetime, nomobil, action)
