@@ -48,14 +48,14 @@ def advanced_license_plate_correction(ocr_result):
     # Aturan koreksi karakter
     digit_corrections = {
         '8': 'B',   # Delapan menjadi B
-        '5': 'S'    # Lima menjadi S
+        # '5': 'S'    # Lima menjadi S
     }
     
     # Koreksi khusus untuk huruf
     letter_corrections = {
         '1': 'I',   # Satu menjadi I
         '0': 'O',   # Nol menjadi O
-        '5': 'S'    # Lima menjadi S
+        # '5': 'S'    # Lima menjadi S
     }
     
     def correct_plate_format(plate):

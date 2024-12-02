@@ -61,7 +61,6 @@ def ocr():
         
         print(f"Action: {action}, Img: {type(image)}, Entry Type: {entryType}, KM: {km}")
         
-        
         if image:
             try:
                 time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -335,7 +334,7 @@ def edit_tamu():
     if not session.get('authenticated'):
         return redirect(url_for('login_ocr'))
     
-    list_keperluan = ['Interview', 'BS', 'Sampah']
+    list_keperluan = ['Interview', 'BS', 'Sampah', 'Tamu']
     data = list_tamu()
     
     if request.method == 'POST':
