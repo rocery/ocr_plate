@@ -44,7 +44,7 @@ def detect_license_plate(image_np, model_name="google/owlvit-base-patch32", text
 
     # Adjust the ymax to get 3/4 of the height from the top
     height = ymax - ymin
-    ymax = ymin + int(0.70 * height)
+    ymax = ymin + int(0.72 * height)
 
     # Crop the image based on the adjusted bounding box
     cropped_image_np = image_np[ymin:ymax, xmin:xmax]
