@@ -47,7 +47,7 @@ def character_check(data):
 def advanced_license_plate_correction(ocr_result):
     # Aturan koreksi karakter
     digit_corrections = {
-        '8': 'B',   # Delapan menjadi B
+        # '8': 'B',   # Delapan menjadi B
         # '5': 'S'    # Lima menjadi S
     }
     
