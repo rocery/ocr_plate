@@ -5,7 +5,11 @@ from script.licence_plate_detector import detect_license_plate
 from script.char_prosess import character_check
 from script.sql_db import *
 from script.csv_process import read_data_csv
+from script.fast_alpr_script import fast_alpr_process
 import re
+import base64
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = 'itbekasioke'
@@ -374,9 +378,46 @@ def data_ocr():
     data = all_data_sql()
     return render_template('data_ocr.html', data = data)
 
+@app.route('/ocr/try', methods=['GET', 'POST'])
+def try_():
+    if request.method == 'POST':
+        action = request.form['action']
+        image = request.files['image']
+        
+        try:
+            entryType = request.form['entryType']
+        except:
+            return render_template('try.html', message='Jenis Kendaraan Tidak Valid. Mohon Untuk Input Ulang.', message_type='danger')    
+
+        km = None
+        
+        if entryType == 'GA':
+            km = request.form.get('km')
+            if km == '' or km is None:
+                return render_template('try.html', message='KM Kendaraan GA Tidak Valid. Mohon Untuk Input Ulang.', message_type='danger')
+
+        print(f"Action: {action}, Img: {type(image)}, Entry Type: {entryType}, KM: {km}")
+        
+        if image:
+            try:
+                time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                time_ = time.strftime("%H:%M:%S", time.localtime())
+                date_ = time.strftime("%Y-%m-%d", time.localtime())
+                
+                image = img_preprocess(image, action, time_str)
+                print(type(image))
+                
+                fast_alpr = fast_alpr_process(image)
+                return render_template('try.html', message=fast_alpr, message_type='success')
+            
+            except:
+                return render_template('try.html', message='Gagal Memproses Gambar. Mohon Untuk Input Ulang.', message_type='danger')
+                
+    return render_template('try.html')
+
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=5000,
-        # debug=True
+        debug=True
     )
