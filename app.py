@@ -338,7 +338,7 @@ def edit_tamu():
     if not session.get('authenticated'):
         return redirect(url_for('login_ocr'))
     
-    list_keperluan = ['Interview', 'BS', 'Sampah', 'Tamu']
+    list_keperluan = ['Interview', 'BS', 'Sampah', 'Tamu', 'Sales', 'Lainnya']
     data = list_tamu()
     
     if request.method == 'POST':
